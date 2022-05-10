@@ -443,7 +443,7 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
             // differences between how patch works on windows and unix.
             $patch_options = '--no-backup-if-mismatch';
             if (PHP_OS_FAMILY == 'BSD') {
-                $patch_options = '--posix --batch';
+                $patch_options = ['--posix', '--batch'];
             }
             foreach ($patch_levels as $patch_level) {
                 if ($patched = $this->executeCommand(
@@ -502,7 +502,15 @@ class Patches implements PluginInterface, EventSubscriberInterface, Capable
         // Shell-escape all arguments except the command.
         $args = func_get_args();
         foreach ($args as $index => $arg) {
-            if ($index !== 0) {
+            if ($index === 0) {
+                continue;
+            }
+            if (is_array($arg)) {
+                $args[$index] = '';
+                foreach ($arg as $option) {
+                    $args[$index] .= ' ' . escapeshellarg($option);
+                }
+            } else {
                 $args[$index] = escapeshellarg($arg);
             }
         }
